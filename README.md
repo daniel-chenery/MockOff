@@ -1,6 +1,6 @@
 # MockOff
 
-A Moq-syntax wrapper for NSubstitute to aid getting Mock off of your project.
+A lightweight Moq-syntax wrapper for NSubstitute to aid getting Mock off of your project.
 
 This is **not** intended to replace Moq. This is **not** a fully-fledged wrapper. Its case is to bridge-the-gap whilst transitioning testing frameworks. Support is not exhaustive. Please **do** support Moq where you can.
 
@@ -21,7 +21,7 @@ If it's not listed, it's probably not supported.
 ### Return
 :heavy_check_mark: `.Returns(TReturn)`  
 :x: `.Returns(Callback)`  
-:x: `.ReturnsAsync(TValue)`  
+:heavy_check_mark: `.ReturnsAsync(TValue)`  
 
 ### Exceptions
 :x: `.Throws(Exception)`  
