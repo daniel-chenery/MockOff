@@ -4,6 +4,9 @@ A lightweight Moq-syntax wrapper for NSubstitute to aid getting Mock off of your
 
 This is **not** intended to replace Moq. This is **not** a fully-fledged wrapper. Its case is to bridge-the-gap whilst transitioning testing frameworks. Support is not exhaustive. Please **do** support Moq where you can.
 
+## Usage
+Install, do a global find & replace on your namespaces replacing `using Moq;` with `using MockOff.NSubstitute;`. Run your tests, hope for the best.
+
 ## Supported Methods
 If it's not listed, it's probably not supported.
 
@@ -31,5 +34,7 @@ If it's not listed, it's probably not supported.
 
 ### Verification
 :x: `.Verify()`  
-:x: `.Verify(int)`  
-:x: `.Verify(Times)`  
+:heavy_check_mark: `.Verify(Times)`  
+:x: `.Verify(Times.AtLeast)`  
+:x: `.Verify(Times.AtMost)`  
+:x: `.Verify(Times.Never)`  

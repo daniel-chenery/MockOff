@@ -1,4 +1,5 @@
 ﻿using NSubstitute;
+using NSubstitute.Exceptions;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -16,7 +17,7 @@ public class Mock<TMock>
 
     public Mock<TMock> Setup<TReturn>(Expression<Func<TMock, TReturn>> expression)
     {
-        _current = GetValueFromExpression(expression.Body);
+        _current = GetValueFromExpression(expression.Body, Object);
 
         return this;
     }
@@ -35,9 +36,31 @@ public class Mock<TMock>
         return this;
     }
 
+    public void Verify(Expression<Action<TMock>> expression, Times times) => Verify(expression.Body, times);
+
+    public void Verify(Expression<Action<TMock>> expression, Func<Times> times) => Verify(expression.Body, times());
+
+    public void Verify<TReturn>(Expression<Func<TMock, TReturn>> expression, Times times) => Verify(expression.Body, times);
+
+    public void Verify<TReturn>(Expression<Func<TMock, TReturn>> expression, Func<Times> times) => Verify(expression, times());
+
+    private void Verify(Expression expression, Times times)
+    {
+        var target = Object.Received(times.Count);
+
+        try
+        {
+            GetValueFromExpression(expression, target);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is ReceivedCallsException)
+        {
+            throw ex.InnerException;
+        }
+    }
+
     public TMock Object { get; }
 
-    private object? GetValueFromExpression(Expression? expression)
+    private object? GetValueFromExpression(Expression? expression, TMock target)
     {
         if (expression is UnaryExpression unaryExpression)
         {
@@ -46,14 +69,14 @@ public class Mock<TMock>
 
         if (expression is MethodCallExpression methodCallExpression)
         {
-            var methodArguments = methodCallExpression.Arguments.Select(GetValueFromExpression).ToArray();
+            var methodArguments = methodCallExpression.Arguments.Select(a => GetValueFromExpression(a, target)).ToArray();
 
-            return methodCallExpression.Method.Invoke(Object, methodArguments);
+            return methodCallExpression.Method.Invoke(target, methodArguments);
         }
 
         if (expression is MemberExpression memberExpression && memberExpression.Member is PropertyInfo property)
         {
-            return property.GetGetMethod()?.Invoke(Object, Array.Empty<object>());
+            return property.GetGetMethod()?.Invoke(target, Array.Empty<object>());
         }
 
         if (expression is ConstantExpression constantExpression)

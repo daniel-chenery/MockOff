@@ -1,3 +1,6 @@
+using NSubstitute;
+using NSubstitute.Exceptions;
+
 namespace MockOff.NSubstitute.UnitTests;
 
 public class MockTests
@@ -84,8 +87,75 @@ public class MockTests
         Assert.Equal(1, await mock.Object.ReturnsIntAsync());
     }
 
+    [Fact]
+    public void MockVerify_Times_ThrowsForNoReceivedCalls()
+    {
+        var mock = new Mock<ITest>();
+
+        Assert.Throws<ReceivedCallsException>(() => mock.Verify(m => m.DoSomething(), Times.Once()));
+        Assert.Throws<ReceivedCallsException>(() => mock.Object.Received(1).ReturnInt());
+    }
+
+    [Fact]
+    public void MockVerify_TimesFunc_ThrowsForNoReceivedCalls()
+    {
+        var mock = new Mock<ITest>();
+
+        Assert.Throws<ReceivedCallsException>(() => mock.Verify(m => m.DoSomething(), Times.Once));
+    }
+
+    [Fact]
+    public void MockVerify_WithReturn_Times_ThrowsForNoReceivedCalls()
+    {
+        var mock = new Mock<ITest>();
+
+        Assert.Throws<ReceivedCallsException>(() => mock.Verify(m => m.ReturnInt(), Times.Once()));
+    }
+
+    [Fact]
+    public void MockVerify_WithReturn_TimesFunc_ThrowsForNoReceivedCalls()
+    {
+        var mock = new Mock<ITest>();
+
+        Assert.Throws<ReceivedCallsException>(() => mock.Verify(m => m.ReturnInt(), Times.Once));
+    }
+
+    [Fact]
+    public void MockVerify_WithReturn_DoesNotThrowForReceivedCalls()
+    {
+        var mock = new Mock<ITest>();
+
+        _ = mock.Object.ReturnInt();
+
+        mock.Verify(m => m.ReturnInt(), Times.Once());
+    }
+
+    [Fact]
+    public void MockVerify_WithReturn_ThrowsForTooManyReceivedCalls()
+    {
+        var mock = new Mock<ITest>();
+
+        _ = mock.Object.ReturnInt();
+        _ = mock.Object.ReturnInt();
+
+        Assert.Throws<ReceivedCallsException>(() => mock.Verify(m => m.ReturnInt(), Times.Once()));
+    }
+
+    [Fact]
+    public void MockVerify_WithReturn_DoesNotThrowForExactlyReceivedCalls()
+    {
+        var mock = new Mock<ITest>();
+
+        _ = mock.Object.ReturnInt();
+        _ = mock.Object.ReturnInt();
+
+        mock.Verify(m => m.ReturnInt(), Times.Exactly(2));
+    }
+
     public interface ITest
     {
+        void DoSomething();
+
         int ReturnInt();
 
         int ReturnIntWithArgument(int anything);
